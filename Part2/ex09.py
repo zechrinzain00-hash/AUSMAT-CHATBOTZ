@@ -5,6 +5,6 @@
 
 # Call the function
 def my_function():
-    print("Hi Marvin!")
+    print("Hi Marvin! How can i help you today?")
 
 my_function()
