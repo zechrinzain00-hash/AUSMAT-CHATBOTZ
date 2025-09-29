@@ -5,4 +5,5 @@ countries = ['Malaysia', 'Japan', 'Armenia', 'Brazil', 'Australia']
 # Create a for loop that goes through the list and prints each country
 
 # Insert your code here
-countries = 
+for x in countries:
+    print("Come and visit", x)
