@@ -5,7 +5,7 @@ import time
 
 # --- Gemini API Configuration ---
 # NOTE: The API key is left empty. Canvas will automatically inject it at runtime.
-API_KEY = "AIzaSyBAZYaPdiAx4AC3Cp3aQvY1IpJSgCZkllQ" 
+API_KEY = "" 
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent"
 
 # System Instruction to set the persona and tone
@@ -18,10 +18,10 @@ SYSTEM_PROMPT = (
 )
 
 # --- P. Ramlee Music Configuration ---
-# CRITICAL: Sila ganti pautan di bawah dengan pautan MP3 awam yang SAH untuk lagu "Dengarlah Gemala Hati".
-# Pautan ini hanyalah placeholder bagi suasana nostalgia/jazz yang bersesuaian.
+# PENTING: Sila masukkan fail MP3 lagu "Dengarlah Gemala Hati" ke dalam folder yang sama 
+# dengan fail Python ini. Nama fail MESTI sama seperti yang didefinisikan di bawah.
 # Browsers may require a user click on the page before autoplay starts.
-PRAMLEE_MUSIC_URL = "https://www.youtube.com/watch?v=IFfpPHx3ahg" 
+PRAMLEE_MUSIC_URL = "dengarlah_gemala_hati.mp3" 
 
 # --- Core API Interaction Function with Exponential Backoff ---
 
@@ -153,8 +153,7 @@ def main_app():
     """, unsafe_allow_html=True)
     
     # --- Hidden Autoplay Music Injection ---
-    # NOTE: Modern browsers usually require a user interaction (like clicking a button) 
-    # before music can autoplay. Once clicked, it will loop and stay hidden.
+    # The PRAMLEE_MUSIC_URL should be the local file path now.
     audio_html = f"""
         <audio controls autoplay loop style="display:none;">
             <source src="{PRAMLEE_MUSIC_URL}" type="audio/mp3">
