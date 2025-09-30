@@ -5,7 +5,7 @@ import time
 
 # --- Gemini API Configuration ---
 # NOTE: The API key is left empty. Canvas will automatically inject it at runtime.
-API_KEY = "AIzaSyBAZYaPdiAx4AC3Cp3aQvY1IpJSgCZkllQ" 
+API_KEY = "" 
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent"
 
 # System Instruction to set the persona and tone
@@ -16,12 +16,6 @@ SYSTEM_PROMPT = (
     "When providing information, use a polite and gentle tone, offering details as if sharing cherished memories. "
     "If the query is outside this scope, politely decline and steer the conversation back to P. Ramlee."
 )
-
-# --- P. Ramlee Music Configuration ---
-# PENTING: Sila masukkan fail MP3 lagu "Dengarlah Gemala Hati" ke dalam folder yang sama 
-# dengan fail Python ini. Nama fail MESTI sama seperti yang didefinisikan di bawah.
-# Browsers may require a user click on the page before autoplay starts.
-PRAMLEE_MUSIC_URL = "LAGU.mp3" 
 
 # --- Core API Interaction Function with Exponential Backoff ---
 
@@ -81,6 +75,36 @@ def query_gemini(prompt):
 
 # --- Streamlit UI and Logic ---
 
+def render_sidebar():
+    """Renders the file uploader sidebar for media display."""
+    st.sidebar.title("Media Corner 🖼️🎶")
+    st.sidebar.markdown(
+        "Muat naik fail media anda di sini untuk dipaparkan dalam sesi sembang ini."
+    )
+
+    uploaded_file = st.sidebar.file_uploader(
+        "Pilih Gambar (.jpg, .png) atau Audio (.mp3)", 
+        type=["png", "jpg", "jpeg", "mp3"]
+    )
+
+    if uploaded_file is not None:
+        file_type = uploaded_file.type
+        st.sidebar.subheader("Media Anda:")
+
+        if 'image' in file_type:
+            # Display image
+            st.sidebar.image(uploaded_file, caption=uploaded_file.name, use_column_width=True)
+            st.sidebar.success("Gambar dimuatkan!")
+
+        elif 'audio' in file_type:
+            # Display audio player
+            st.sidebar.audio(uploaded_file, format='audio/mp3', start_time=0)
+            st.sidebar.success("Audio sedia untuk dimainkan!")
+        
+        else:
+            st.sidebar.error("Format fail tidak disokong.")
+
+
 def main_app():
     """Initializes and runs the Streamlit chatbot application."""
     st.set_page_config(
@@ -89,61 +113,71 @@ def main_app():
         initial_sidebar_state="collapsed"
     )
 
-    # Custom CSS for "Cozy, Back to the Past" Theme
+    # Render the media sidebar
+    render_sidebar()
+
+    # Custom CSS for "Brown-Based Retro" Theme
     st.markdown("""
         <style>
-            /* 1. Overall Cozy Sepia/Muted Theme */
+            /* 1. Overall Brown/Tan Retro Theme */
             .stApp {
-                background-color: #F8F4E3; /* Light Sepia/Cream background */
+                background-color: #E8DBC5; /* Soft Tan/Cream background */
                 color: #5C4033; /* Dark Brown text for soft contrast */
-                font-family: 'Georgia', serif; /* Classic, inviting font */
-                padding: 1rem;
+                font-family: 'Georgia', serif; /* Classic font */
             }
-            /* 2. Chat Container Styling (main content area) */
+            /* 2. Main Chat Container Styling */
             .main > div {
-                background-color: #FFFFFF; /* White paper look */
+                background-color: #FFFFFF; /* White paper look for main chat area */
                 border-radius: 12px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
                 padding: 15px;
             }
             
-            /* 3. Header Styling */
+            /* 3. Sidebar Styling */
+            .css-usj993, .css-1dp3s9c, .css-1cpxdwv { /* Targeting common sidebar elements */
+                background-color: #D2B48C !important; /* Muted brown sidebar color */
+                color: #4A2D1F !important; /* Darker text in sidebar */
+                padding: 10px;
+                border-radius: 8px;
+            }
+            
+            /* 4. Header Styling */
             h1 {
-                color: #A52A2A; /* Rich Brown/Maroon title */
+                color: #8B4513; /* Saddle Brown title */
                 text-align: center;
                 font-family: 'Times New Roman', serif;
-                border-bottom: 2px solid #D2B48C; /* Light Tan border */
+                border-bottom: 2px solid #D2B48C; /* Tan border */
                 padding-bottom: 10px;
             }
             
-            /* 4. Chat Bubbles - User */
+            /* 5. Chat Bubbles - User (Darker Tan) */
             .stChatMessage.user {
-                background-color: #D2B48C; /* Tan/Warm User bubble */
+                background-color: #C0A080; /* Medium Brown/Tan User bubble */
                 border-radius: 10px;
                 padding: 10px;
                 margin-bottom: 10px;
                 margin-left: 30%; /* Align right */
-                color: #5C4033;
+                color: #4A2D1F;
             }
 
-            /* 5. Chat Bubbles - Bot (Storyteller) */
+            /* 6. Chat Bubbles - Bot (Cream/Off-White) */
             .stChatMessage.assistant {
-                background-color: #E6E0D6; /* Very light, soft bot bubble */
+                background-color: #F0EAD6; /* Very light cream bot bubble */
                 border-radius: 10px;
                 padding: 10px;
                 margin-bottom: 10px;
                 margin-right: 30%; /* Align left */
-                color: #5C4033;
-                border-left: 3px solid #A52A2A; /* Subtle maroon accent */
+                color: #4A2D1F;
+                border-left: 3px solid #8B4513; /* Brown accent line */
             }
 
-            /* 6. Input/Button Styling */
+            /* 7. Input/Button Styling */
             .stTextInput>div>div>input {
                 border-radius: 8px;
-                border: 1px solid #D2B48C;
+                border: 1px solid #C0A080;
             }
             .stButton>button {
-                background-color: #A52A2A; 
+                background-color: #8B4513; /* Main brown button */
                 color: white;
                 border-radius: 8px;
                 border: none;
@@ -152,17 +186,6 @@ def main_app():
         </style>
     """, unsafe_allow_html=True)
     
-    # --- Hidden Autoplay Music Injection ---
-    # The PRAMLEE_MUSIC_URL should be the local file path now.
-    audio_html = f"""
-        <audio controls autoplay loop style="display:none;">
-            <source src="{PRAMLEE_MUSIC_URL}" type="audio/mp3">
-            Your browser does not support the audio element.
-        </audio>
-    """
-    st.markdown(audio_html, unsafe_allow_html=True)
-    # --- END MUSIC INJECTION ---
-
     st.title("🕰️ P. Ramlee's Songbook & Storyteller")
     st.markdown("---")
     
