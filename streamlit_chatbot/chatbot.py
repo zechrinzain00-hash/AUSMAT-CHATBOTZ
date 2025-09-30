@@ -7,7 +7,7 @@ def initialize_session_state():
         st.session_state.messages = []
 
 def main():
-    st.title("My First Chatbot")
+    st.title("TakoBot")
     
     initialize_session_state()
 
@@ -32,9 +32,6 @@ def main():
         
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-if __name__ == "__main__":
-    main()
-
 with st.sidebar:
     st.title("Sidebar") 
     #anything added inside this indented section will pop up in the sidebar#
@@ -45,25 +42,26 @@ st.selectbox("Dropdown select", ["Data", "Code", "Travel", "Food", "Sports"], in
 st.slider("Slider", min_value=1, max_value=200, value=60)
 st.select_slider("Option Slider", options=["Very Sad", "Sad", "Okay", "Happy", "Very Happy"], value="Okay")
 
-use_emoji = "👤" # Change this to any emojis you like
+user_emoji = "👤" # Change this to any emojis you like
 robot_img = "robot.jpg.jpg" # Find a picture online(jpg/png), download it and drag to
 												# your files under the Chatbot folder
 
-# Replace the section in the code that says "Display chat messages" with this code
 for message in st.session_state.messages:
     if message["role"] == "assistant":
         with st.chat_message("assistant", avatar=robot_img):
             st.write(f"{message['content']}")
     else:
-        with st.chat_message("use", avatar=use_emoji):
+        with st.chat_message("user", avatar=user_emoji):
             st.write(f"{message['content']}")
+
+if __name__ == "__main__":
+    main()
 
 import streamlit as st
 import google.generativeai as genai
 
-
 # Configure Gemini API
-GOOGLE_API_KEY = "AIzaSyBAZYaPdiAx4AC3Cp3aQvY1IpJSgCZkllQ"
+GOOGLE_API_KEY = "your-api-key-here"
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-2.5-flash')
 
@@ -106,3 +104,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
