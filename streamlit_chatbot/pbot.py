@@ -5,7 +5,7 @@ import time
 
 # --- Gemini API Configuration ---
 # NOTE: The API key is left empty. Canvas will automatically inject it at runtime.
-API_KEY = "" 
+API_KEY = "AIzaSyBAZYaPdiAx4AC3Cp3aQvY1IpJSgCZkllQ" 
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent"
 
 # System Instruction to set the persona and tone
@@ -21,7 +21,7 @@ SYSTEM_PROMPT = (
 # PENTING: Sila masukkan fail MP3 lagu "Dengarlah Gemala Hati" ke dalam folder yang sama 
 # dengan fail Python ini. Nama fail MESTI sama seperti yang didefinisikan di bawah.
 # Browsers may require a user click on the page before autoplay starts.
-PRAMLEE_MUSIC_URL = "dengarlah_gemala_hati.mp3" 
+PRAMLEE_MUSIC_URL = "LAGU.mp3" 
 
 # --- Core API Interaction Function with Exponential Backoff ---
 
