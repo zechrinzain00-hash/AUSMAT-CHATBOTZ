@@ -1,0 +1,199 @@
+import streamlit as st
+import requests
+import json
+import time
+
+# --- Gemini API Configuration ---
+# NOTE: The API key is left empty. Canvas will automatically inject it at runtime.
+API_KEY = "" 
+API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent"
+
+# System Instruction to set the persona and tone
+SYSTEM_PROMPT = (
+    "You are 'Tuan Ramlee's Storyteller,' a highly knowledgeable and respectful historian dedicated to the life and works of the late, great Malaysian artist, P. Ramlee. "
+    "Your responses must embody a cozy, nostalgic, and warm tone, reminiscent of the mid-20th century, perfect for reminiscing about the golden age of Malay cinema and music. "
+    "You must only answer questions related to P. Ramlee's songs, movies, and personal details, including his masterpieces, hobbies, and close friends. "
+    "When providing information, use a polite and gentle tone, offering details as if sharing cherished memories. "
+    "If the query is outside this scope, politely decline and steer the conversation back to P. Ramlee."
+)
+
+# --- P. Ramlee Music Configuration ---
+# CRITICAL: Replace the placeholder below with a direct, publicly accessible MP3 link for "Dengarlah Gemala Hati".
+# Browsers may require a user click on the page before autoplay starts.
+PRAMLEE_MUSIC_URL = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" 
+
+# --- Core API Interaction Function with Exponential Backoff ---
+
+def query_gemini(prompt):
+    """
+    Sends a query to the Gemini API with exponential backoff for reliability.
+    Uses Google Search grounding for accurate, up-to-date information.
+    """
+    # Define payload structure
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "tools": [{"google_search": {}}],  # Enable Google Search for grounding
+        "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+    }
+    
+    headers = {'Content-Type': 'application/json'}
+    
+    # Simple exponential backoff implementation (1s, 2s, 4s)
+    for i in range(3):
+        try:
+            # Append API key to URL if present
+            url_with_key = f"{API_URL}?key={API_KEY}"
+            
+            response = requests.post(url_with_key, headers=headers, data=json.dumps(payload))
+            response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+            
+            result = response.json()
+            candidate = result.get('candidates', [{}])[0]
+            
+            # Extract generated text
+            text = candidate.get('content', {}).get('parts', [{}])[0].get('text', 'I seem to be lost in time. Could you rephrase your question?')
+            
+            # Extract citations (grounding metadata)
+            sources = []
+            grounding = candidate.get('groundingMetadata', {}).get('groundingAttributions', [])
+            for attr in grounding:
+                web_info = attr.get('web', {})
+                if web_info.get('uri') and web_info.get('title'):
+                    sources.append(f"[{web_info['title']}]({web_info['uri']})")
+            
+            # Format output with citations
+            if sources:
+                text += "\n\n---\n*Sources:* " + ", ".join(sources)
+                
+            return text
+
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 429 and i < 2:
+                # Handle rate limit with backoff
+                time.sleep(2 ** i)
+                continue
+            return f"An error occurred while fetching information: {e.response.status_code} - {e.response.reason}"
+        except Exception as e:
+            return f"An unexpected error occurred: {e}"
+            
+    return "I couldn't complete the request after several retries. Perhaps we can talk about a simpler song title?"
+
+# --- Streamlit UI and Logic ---
+
+def main_app():
+    """Initializes and runs the Streamlit chatbot application."""
+    st.set_page_config(
+        page_title="Nostalgia Chat: P. Ramlee's Legacy", 
+        layout="centered", 
+        initial_sidebar_state="collapsed"
+    )
+
+    # Custom CSS for "Cozy, Back to the Past" Theme
+    st.markdown("""
+        <style>
+            /* 1. Overall Cozy Sepia/Muted Theme */
+            .stApp {
+                background-color: #F8F4E3; /* Light Sepia/Cream background */
+                color: #5C4033; /* Dark Brown text for soft contrast */
+                font-family: 'Georgia', serif; /* Classic, inviting font */
+                padding: 1rem;
+            }
+            /* 2. Chat Container Styling (main content area) */
+            .main > div {
+                background-color: #FFFFFF; /* White paper look */
+                border-radius: 12px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                padding: 15px;
+            }
+            
+            /* 3. Header Styling */
+            h1 {
+                color: #A52A2A; /* Rich Brown/Maroon title */
+                text-align: center;
+                font-family: 'Times New Roman', serif;
+                border-bottom: 2px solid #D2B48C; /* Light Tan border */
+                padding-bottom: 10px;
+            }
+            
+            /* 4. Chat Bubbles - User */
+            .stChatMessage.user {
+                background-color: #D2B48C; /* Tan/Warm User bubble */
+                border-radius: 10px;
+                padding: 10px;
+                margin-bottom: 10px;
+                margin-left: 30%; /* Align right */
+                color: #5C4033;
+            }
+
+            /* 5. Chat Bubbles - Bot (Storyteller) */
+            .stChatMessage.assistant {
+                background-color: #E6E0D6; /* Very light, soft bot bubble */
+                border-radius: 10px;
+                padding: 10px;
+                margin-bottom: 10px;
+                margin-right: 30%; /* Align left */
+                color: #5C4033;
+                border-left: 3px solid #A52A2A; /* Subtle maroon accent */
+            }
+
+            /* 6. Input/Button Styling */
+            .stTextInput>div>div>input {
+                border-radius: 8px;
+                border: 1px solid #D2B48C;
+            }
+            .stButton>button {
+                background-color: #A52A2A; 
+                color: white;
+                border-radius: 8px;
+                border: none;
+                font-weight: bold;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    # --- Hidden Autoplay Music Injection ---
+    # NOTE: Modern browsers usually require a user interaction (like clicking a button) 
+    # before music can autoplay. Once clicked, it will loop and stay hidden.
+    audio_html = f"""
+        <audio controls autoplay loop style="display:none;">
+            <source src="{PRAMLEE_MUSIC_URL}" type="audio/mp3">
+            Your browser does not support the audio element.
+        </audio>
+    """
+    st.markdown(audio_html, unsafe_allow_html=True)
+    # --- END MUSIC INJECTION ---
+
+    st.title("🕰️ P. Ramlee's Songbook & Storyteller")
+    st.markdown("---")
+    
+    # Initialize chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+        # Initial greeting from the storyteller
+        st.session_state.messages.append({"role": "assistant", "content": "Selamat datang, Tuan/Puan! I am here to share stories and details about the great Tan Sri P. Ramlee's songs and life. What cherished memory or question do you have today?"})
+
+    # Display chat messages from history on app rerun
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # React to user input
+    if prompt := st.chat_input("Ask about a song, film, or P. Ramlee's life..."):
+        
+        # 1. Add user message to chat history and display
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # 2. Get and display the assistant's response
+        with st.chat_message("assistant"):
+            with st.spinner('Flipping through the old albums...'):
+                full_response = query_gemini(prompt)
+                st.markdown(full_response)
+        
+        # 3. Add assistant response to chat history
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+if __name__ == "__main__":
+    main_app()
+
