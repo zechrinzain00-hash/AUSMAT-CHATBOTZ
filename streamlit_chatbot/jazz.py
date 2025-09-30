@@ -7,7 +7,7 @@ import time
 # NOTE: This line is updated to prioritize Streamlit Secrets for local running.
 # FIX for 403: If running locally, you MUST create a .streamlit/secrets.toml file 
 # with your API key inside it (e.g., gemini_api_key = "YOUR_KEY_HERE").
-API_KEY = st.secrets.get("gemini_api_key", "") # Attempts to retrieve key from secrets, defaults to ""
+API_KEY = "AIzaSyBAZYaPdiAx4AC3Cp3aQvY1IpJSgCZkllQ" # Attempts to retrieve key from secrets, defaults to ""
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent"
 
 # System Instruction to set the persona and tone
@@ -121,6 +121,7 @@ def main_app():
 
     # Render the media sidebar
     render_sidebar()
+    st.audio('LAGU.mp3')
 
     # Custom CSS for "Brown-Based Retro" Theme
     st.markdown("""
@@ -223,5 +224,7 @@ def main_app():
         # 3. Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": full_response})
 
+
 if __name__ == "__main__":
     main_app()
+
