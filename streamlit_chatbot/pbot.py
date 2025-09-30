@@ -5,7 +5,7 @@ import time
 
 # --- Gemini API Configuration ---
 # NOTE: The API key is left empty. Canvas will automatically inject it at runtime.
-API_KEY = "" 
+API_KEY = "AIzaSyBAZYaPdiAx4AC3Cp3aQvY1IpJSgCZkllQ" 
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent"
 
 # System Instruction to set the persona and tone
